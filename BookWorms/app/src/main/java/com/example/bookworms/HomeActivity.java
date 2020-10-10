@@ -44,10 +44,19 @@ public class HomeActivity extends AppCompatActivity  implements NavigationView.O
     private RecyclerView recyclerView;
     RecyclerView.LayoutManager layoutManager;
 
+    private String type = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
+       Intent intent = getIntent();
+       Bundle bundle = intent.getExtras();
+       if(bundle != null){
+           type = getIntent().getExtras().get("Admin").toString();
+       }
+
         ProductsRef = FirebaseDatabase.getInstance().getReference().child("Products");
 
         Paper.init(this);
@@ -58,8 +67,11 @@ public class HomeActivity extends AppCompatActivity  implements NavigationView.O
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(HomeActivity.this,CartActivity.class);
-                startActivity(intent);
+
+                if(!type.equals("Admin")){
+                    Intent intent = new Intent(HomeActivity.this,CartActivity.class);
+                    startActivity(intent);
+                }
             }
         });
 
@@ -76,8 +88,13 @@ public class HomeActivity extends AppCompatActivity  implements NavigationView.O
         View headerView = navigationView.getHeaderView(0);
         TextView userNameTextView = headerView.findViewById(R.id.user_profile_name);
         CircleImageView profileImageView = headerView.findViewById(R.id.user_profile_image);
-        userNameTextView.setText(Prevalent.currentOnlineUser.getName());
-        Picasso.get().load(Prevalent.currentOnlineUser.getImage()).placeholder(R.drawable.profile).into(profileImageView);
+
+        if(!type.equals("Admin"))
+        {
+            userNameTextView.setText(Prevalent.currentOnlineUser.getName());
+            Picasso.get().load(Prevalent.currentOnlineUser.getImage()).placeholder(R.drawable.profile).into(profileImageView);
+        }
+
         recyclerView = findViewById(R.id.recycler_menu);
         recyclerView.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(this);
@@ -88,7 +105,8 @@ public class HomeActivity extends AppCompatActivity  implements NavigationView.O
     protected void onStart() {
         super.onStart();
         FirebaseRecyclerOptions<Products> options =
-                new FirebaseRecyclerOptions.Builder<Products>().setQuery(ProductsRef,Products.class).build();
+                new FirebaseRecyclerOptions.Builder<Products>()
+                        .setQuery(ProductsRef.orderByChild("productState").equalTo("Approved"),Products.class).build();
 
         FirebaseRecyclerAdapter<Products, BookViewHolder> adapter=
                 new FirebaseRecyclerAdapter<Products, BookViewHolder>(options) {
@@ -99,12 +117,23 @@ public class HomeActivity extends AppCompatActivity  implements NavigationView.O
                         holder.txtProductPrice.setText("Price: "+ model.getPrice()+ "Taka");
                         Picasso.get().load(model.getImage()).into(holder.imageview);
 
+
                         holder.itemView.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
+
+                                if(type.equals("Admin")){
+                                    Intent intent = new Intent(HomeActivity.this, AdminMaintainProductsActivity.class);
+                                    intent.putExtra("pid", model.getPid());
+                                    startActivity(intent);
+                                }
+                                else
+                                {
                                     Intent intent = new Intent(HomeActivity.this, productDetailsActivity.class);
                                     intent.putExtra("pid", model.getPid());
                                     startActivity(intent);
+                                }
+
                             }
                         });
                     }
@@ -158,8 +187,11 @@ public class HomeActivity extends AppCompatActivity  implements NavigationView.O
 
         if (id == R.id.nav_cart)
         {
-            Intent intent = new Intent(HomeActivity.this,CartActivity.class);
-            startActivity(intent);
+            if(!type.equals("Admin")){
+                Intent intent = new Intent(HomeActivity.this,CartActivity.class);
+                startActivity(intent);
+            }
+
         }
         else if (id == R.id.nav_orders)
         {
@@ -169,24 +201,40 @@ public class HomeActivity extends AppCompatActivity  implements NavigationView.O
         {
 
         }
+        else if (id == R.id.nav_blog)
+        {
+            sendUserToPostActivity();
+        }
         else if (id == R.id.nav_settings)
         {
-            Intent intent = new Intent(HomeActivity.this, SettingsActivity.class);
-            startActivity(intent);
+            if(!type.equals("Admin")){
+                Intent intent = new Intent(HomeActivity.this, SettingsActivity.class);
+                startActivity(intent);
+            }
+
         }
 
         else if (id == R.id.nav_logout)
         {
-            Paper.book().destroy();
+            if(!type.equals("Admin")){
+                Paper.book().destroy();
 
-            Intent intent = new Intent(HomeActivity.this, MainActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
+                Intent intent = new Intent(HomeActivity.this, MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+            }
+
+
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void sendUserToPostActivity() {
+        Intent addNewPost = new Intent(HomeActivity.this, PostActivity.class);
+        startActivity(addNewPost);
     }
 }

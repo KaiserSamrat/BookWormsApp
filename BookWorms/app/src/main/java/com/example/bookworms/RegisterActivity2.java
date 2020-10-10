@@ -15,6 +15,8 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -25,15 +27,22 @@ import java.util.HashMap;
 
 public class RegisterActivity2 extends AppCompatActivity {
     private Button CreateAccountButton;
-    private EditText InputName, InputPhoneNumber, InputPassword;
+    private EditText InputName, InputPhoneNumber, InputEmail,InputPassword;
+
+
+    private FirebaseAuth mAuth;
+
     private ProgressDialog loadingBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register2);
+
+        mAuth =FirebaseAuth.getInstance();
         CreateAccountButton=(Button) findViewById(R.id.register_btn);
         InputName=(EditText) findViewById(R.id.register_username_input);
+        InputEmail=(EditText) findViewById(R.id.register_user_email_input);
         InputPhoneNumber=(EditText) findViewById(R.id.register_phone_input);
         InputPassword=(EditText) findViewById(R.id.register_password_input);
         loadingBar=new ProgressDialog(this);
@@ -48,6 +57,7 @@ public class RegisterActivity2 extends AppCompatActivity {
     }
     private void CreateAccount(){
         String name = InputName.getText().toString();
+        String email = InputEmail.getText().toString();
         String phone = InputPhoneNumber.getText().toString();
         String password = InputPassword.getText().toString();
         if(TextUtils.isEmpty(name)){
@@ -59,11 +69,22 @@ public class RegisterActivity2 extends AppCompatActivity {
         else if(TextUtils.isEmpty(password)){
             Toast.makeText(this, "Please write your password...", Toast.LENGTH_SHORT).show();
         }
+        else if(TextUtils.isEmpty(email)){
+            Toast.makeText(this, "Please write your email...", Toast.LENGTH_SHORT).show();
+        }
         else{
             loadingBar.setTitle("Create Account ");
             loadingBar.setMessage("Please wait ");
             loadingBar.setCanceledOnTouchOutside(false);
             loadingBar.show();
+            mAuth.createUserWithEmailAndPassword(email,password)
+                    .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+
+                        }
+                    });
+
             validatephoneNumber(name,phone,password);
         }
 

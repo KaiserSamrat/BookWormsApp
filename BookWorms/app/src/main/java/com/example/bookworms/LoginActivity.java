@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
+
+import com.example.bookworms.Sellers.SellerProductCategoryActivity;
 import com.rey.material.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -27,7 +29,7 @@ import io.paperdb.Paper;
 public class LoginActivity extends AppCompatActivity {
     private EditText InputPhoneNumber, InputPassword;
     private Button LoginButton;
-    private TextView AdminLink,NotAdminLink;
+    private TextView AdminLink,NotAdminLink, forgetPasswordLink;
     private ProgressDialog loadingBar;
     private CheckBox checkBoxRememberMe;
     private String ParentDbName = "Users";
@@ -42,6 +44,7 @@ public class LoginActivity extends AppCompatActivity {
         InputPassword=(EditText) findViewById(R.id.login_password_input);
         AdminLink= (TextView) findViewById(R.id.admin_panel_link);
         NotAdminLink= (TextView) findViewById(R.id.not_admin_panel_link);
+        forgetPasswordLink = findViewById(R.id.forget_password);
         loadingBar=new ProgressDialog(this);
         checkBoxRememberMe = (CheckBox) findViewById(R.id.remember_me_checkbox);
         Paper.init(this);
@@ -53,6 +56,16 @@ public class LoginActivity extends AppCompatActivity {
                 loginUser();
             }
         });
+
+        forgetPasswordLink.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(LoginActivity.this, ResetPasswordActivity.class);
+                intent.putExtra("check", "login");
+                startActivity(intent);
+            }
+        });
+
         AdminLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -115,7 +128,7 @@ public class LoginActivity extends AppCompatActivity {
                                 Toast.makeText(LoginActivity.this, "Welcome Admin, you are logged in Successfully...", Toast.LENGTH_SHORT).show();
                                 loadingBar.dismiss();
 
-                                Intent intent = new Intent(LoginActivity.this, AdminCategoryActivity.class);
+                                Intent intent = new Intent(LoginActivity.this, AdminHomeActivity.class);
                                 startActivity(intent);
                             }
                             else if(ParentDbName.equals("Users"))
